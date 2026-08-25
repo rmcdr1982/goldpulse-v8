@@ -1,0 +1,151 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GoldPulse AI V6</title>
+<style>
+:root{--bg:#050a12;--p:#0b1726;--b:#1b3652;--t:#edf6ff;--m:#8ca6bd;--c:#35dcff;--g:#22d38a;--r:#ff5575;--y:#ffd166}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#143b59,#050a12 45%,#02060b);color:var(--t);font:14px system-ui,Arial}
+header{padding:15px 5%;display:flex;justify-content:space-between;border-bottom:1px solid var(--b)}.logo{font-size:21px;font-weight:900}.logo span{color:var(--c)}.badge{color:var(--c);border:1px solid var(--b);padding:5px 9px;border-radius:20px}
+main{width:min(1450px,92%);margin:23px auto}.hero h1{font-size:clamp(27px,4vw,43px);margin:0}.muted,.note{color:var(--m)}.card{background:#0b1726f2;border:1px solid var(--b);border-radius:16px;padding:17px;margin:15px 0}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}input,select,button{background:#091522;color:var(--t);border:1px solid var(--b);padding:10px 12px;border-radius:9px}button{cursor:pointer}
+.top{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;gap:10px}.stat,.ind,.level{background:#091522;border:1px solid var(--b);border-radius:11px;padding:12px}.stat small,.ind small,.level small{color:var(--m)}.price{font-size:28px;font-weight:900}.big{font-size:36px;font-weight:900}.prob{font-size:26px;font-weight:900}.green{color:var(--g)}.red{color:var(--r)}.yellow{color:var(--y)}
+.meter{height:11px;background:#1a2a3b;border-radius:20px;overflow:hidden;margin-top:9px}.meter i{display:block;height:100%;width:50%;background:linear-gradient(90deg,var(--r),var(--y),var(--g))}
+.inds{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.ind h4{margin:0 0 5px}.value{font-size:18px;font-weight:800}.signal{float:right;font-size:11px;border:1px solid var(--b);padding:3px 7px;border-radius:20px}
+canvas{width:100%;height:280px;background:#07111c;border-radius:10px}.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.level b{display:block;font-size:20px;margin-top:4px}.note{font-size:12px;line-height:1.6}
+@media(max-width:1000px){.top{grid-template-columns:1fr 1fr}.inds{grid-template-columns:1fr 1fr}.levels{grid-template-columns:1fr 1fr}}@media(max-width:550px){.top,.inds,.levels{grid-template-columns:1fr}.controls>*{width:100%}}
+</style></head><body>
+<header><div class="logo">Gold<span>Pulse</span> AI <small>V6</small></div><div class="badge">V8 • INSTALLABLE PWA</div></header>
+<main>
+<section class="hero"><h1>XAU/USD Multi-Timeframe Scanner</h1>
+<p class="muted">15M + 1H + 4H + 1D • 9-Indicator Confirmation Engine</p>
+<div class="controls">
+<div id="v8settings" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+<button id="v8install" style="display:none">📲 Add to Home Screen</button>
+<button id="v8edit">🔑 Edit API Key</button><button id="v8clear">🗑 Clear Saved Key</button>
+<span id="v8state" class="muted"></span></div>
+<input id="key" type="password" placeholder="Twelve Data API key"><select id="tf"><option value="15min">15M</option><option value="1h">1H</option><option value="4h">4H</option><option value="1day">1D</option></select><input id="size" type="number" value="500" min="220" max="5000"><button id="load">Load Real XAU/USD</button><button id="demo">Demo Mode</button><button id="analyze">Analyze</button></div>
+<div id="status" class="muted">Ready. Demo mode works without an API key.</div></section>
+
+<section class="top">
+<div class="stat"><small>XAU/USD</small><div id="price" class="price">—</div><span id="time" class="muted">—</span></div>
+<div class="stat"><small>Overall Signal</small><div id="direction" class="big yellow">WAIT</div><div class="muted">Score <span id="score">50</span>/100</div><div class="meter"><i id="meter"></i></div></div>
+<div class="stat"><small>Bullish probability</small><div id="bull" class="prob green">50%</div></div>
+<div class="stat"><small>Bearish probability</small><div id="bear" class="prob red">50%</div></div>
+</section>
+
+<section class="card"><h3>Indicator Dashboard</h3><div class="inds" id="inds"></div></section>
+<section class="card"><h3>Price / EMA / Bollinger / PSAR</h3><canvas id="chart"></canvas></section>
+<section class="card"><h3>ATR Risk Levels</h3><div class="levels" id="levels"></div><p class="note">Mechanical ATR levels only; they are not guaranteed support/resistance or financial advice.</p></section>
+<section class="card"><h3>V8 Multi-Timeframe Confirmation</h3>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px">
+<div class="level"><small>15 MIN</small><b>10%</b><span class="muted">Entry timing</span></div>
+<div class="level"><small>1 HOUR</small><b>20%</b><span class="muted">Short trend</span></div>
+<div class="level"><small>4 HOUR</small><b>30%</b><span class="muted">Main trend</span></div>
+<div class="level"><small>1 DAY</small><b>40%</b><span class="muted">Major trend</span></div>
+</div>
+<p class="note">V8 is designed to require higher-timeframe confirmation before allowing a strong BUY or SELL. When timeframes disagree, the engine returns WAIT rather than forcing a trade.</p>
+</section><section class="card"><h3>Scoring model</h3><p class="note">RSI, Bollinger Bands, Parabolic SAR, Bulls Power, Bears Power, Awesome Oscillator, EMA50/200 and MACD contribute directional votes. ATR measures volatility and is displayed separately, not counted as bullish or bearish. The final score is a technical consensus, not a guaranteed prediction.</p></section>
+</main>
+<script>
+let rows=[];const $=id=>document.getElementById(id);
+function ema(a,n){let o=[],k=2/(n+1),e=a[0];a.forEach((v,i)=>{e=i?e+k*(v-e):v;o.push(e)});return o}
+function sma(a,n){return a.map((_,i)=>{let z=a.slice(Math.max(0,i-n+1),i+1);return z.reduce((s,v)=>s+v,0)/z.length})}
+function rsi(a,n=14){let o=Array(a.length).fill(50),g=0,l=0;for(let i=1;i<=n;i++){let d=a[i]-a[i-1];g+=Math.max(d,0);l+=Math.max(-d,0)}let ag=g/n,al=l/n;for(let i=n;i<a.length;i++){if(i>n){let d=a[i]-a[i-1];ag=(ag*(n-1)+Math.max(d,0))/n;al=(al*(n-1)+Math.max(-d,0))/n}o[i]=al?100-100/(1+ag/al):100}return o}
+function atr(rs,n=14){return rs.map((_,i)=>{let s=0,c=0;for(let j=Math.max(0,i-n+1);j<=i;j++){let p=j?rs[j-1].close:rs[j].open;s+=Math.max(rs[j].high-rs[j].low,Math.abs(rs[j].high-p),Math.abs(rs[j].low-p));c++}return s/c})}
+function boll(c,n=20,m=2){let mid=sma(c,n),up=[],lo=[];for(let i=0;i<c.length;i++){let z=c.slice(Math.max(0,i-n+1),i+1),v=mid[i],sd=Math.sqrt(z.reduce((s,x)=>s+(x-v)*(x-v),0)/z.length);up.push(v+m*sd);lo.push(v-m*sd)}return{mid,up,lo}}
+function macd(c){let f=ema(c,12),s=ema(c,26),m=f.map((v,i)=>v-s[i]),sig=ema(m,9);return{m,sig}}
+function psar(rs){let out=[],up=true,af=.02,ep=rs[0].high,sar=rs[0].low;out[0]=sar;for(let i=1;i<rs.length;i++){sar+=af*(ep-sar);if(up){sar=Math.min(sar,rs[i-1].low,i>1?rs[i-2].low:rs[i-1].low);if(rs[i].low<sar){up=false;sar=ep;ep=rs[i].low;af=.02}else if(rs[i].high>ep){ep=rs[i].high;af=Math.min(.2,af+.02)}}else{sar=Math.max(sar,rs[i-1].high,i>1?rs[i-2].high:rs[i-1].high);if(rs[i].high>sar){up=true;sar=ep;ep=rs[i].high;af=.02}else if(rs[i].low<ep){ep=rs[i].low;af=Math.min(.2,af+.02)}}out[i]=sar}return out}
+function ao(rs){let m=rs.map(x=>(x.high+x.low)/2),a=sma(m,5),b=sma(m,34);return a.map((v,i)=>v-b[i])}
+function demo(){rows=[];let p=3400,d=new Date('2026-01-01');for(let i=0;i<700;i++){let c=p+Math.sin(i/110)*.35+Math.sin(i/13)*3+Math.sin(i/41)*5+(Math.random()-.5)*7,o=p,h=Math.max(o,c)+Math.random()*5,l=Math.min(o,c)-Math.random()*5;rows.push({datetime:new Date(d.getTime()+i*3600000).toISOString(),open:o,high:h,low:l,close:c});p=c}$('status').textContent='Demo mode: synthetic candles, not real prices.';analyze()}
+async function loadReal(){let key=$('key').value.trim();if(!key){alert('Enter your Twelve Data API key.');return}try{$('status').textContent='Loading real XAU/USD…';let u=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${$('tf').value}&outputsize=${$('size').value}&order=asc&apikey=${encodeURIComponent(key)}`,j=await(await fetch(u)).json();if(j.status==='error'||!j.values)throw Error(j.message||'No data returned');rows=j.values.map(v=>({datetime:v.datetime,open:+v.open,high:+v.high,low:+v.low,close:+v.close})).filter(x=>[x.open,x.high,x.low,x.close].every(Number.isFinite));$('status').textContent='Loaded '+rows.length+' real XAU/USD candles.';analyze()}catch(e){$('status').textContent='Load error: '+e.message}}
+function analyze(){if(rows.length<220){$('status').textContent='Need at least 220 candles.';return}let c=rows.map(x=>x.close),e50=ema(c,50),e200=ema(c,200),rr=rsi(c),bb=boll(c),sar=psar(rows),e13=ema(c,13),bp=rows.map((x,i)=>x.high-e13[i]),br=rows.map((x,i)=>x.low-e13[i]),av=ao(rows),mc=macd(c),at=atr(rows),i=c.length-1;
+let v=[],add=(n,val,s,w)=>v.push({n,val,s,w});add('RSI 14',rr[i].toFixed(2),rr[i]>50&&rr[i]<70?'Bullish':rr[i]<50&&rr[i]>30?'Bearish':rr[i]>=70?'Overbought':'Oversold',1);
+let pos=(c[i]-bb.lo[i])/(bb.up[i]-bb.lo[i]||1);add('Bollinger Bands',pos.toFixed(2),pos<.2?'Bullish':pos>.8?'Bearish':c[i]>bb.mid[i]?'Bullish':'Bearish',1);
+add('Parabolic SAR',sar[i].toFixed(2),c[i]>sar[i]?'Bullish':'Bearish',1);add('Bulls Power',bp[i].toFixed(2),bp[i]>0?'Bullish':'Bearish',.8);add('Bears Power',br[i].toFixed(2),br[i]>0?'Bearish':'Bullish',.8);add('Awesome Oscillator',av[i].toFixed(3),av[i]>0?'Bullish':'Bearish',1);add('EMA 50 / 200',e50[i].toFixed(2)+' / '+e200[i].toFixed(2),e50[i]>e200[i]?'Bullish':'Bearish',1.3);add('ATR 14',at[i].toFixed(2),'Volatility',0);add('MACD',mc.m[i].toFixed(3)+' / '+mc.sig[i].toFixed(3),mc.m[i]>mc.sig[i]?'Bullish':'Bearish',1.2);
+let bw=0,rw=0,total=0;v.forEach(x=>{if(x.w){total+=x.w;if(x.s==='Bullish')bw+=x.w;if(x.s==='Bearish')rw+=x.w}});let bull=Math.round(100*bw/total),bear=100-bull,dir=bull>=60?'BUY':bull<=40?'SELL':'WAIT',conf=Math.max(bull,bear);
+$('price').textContent=c[i].toFixed(2);$('time').textContent=rows[i].datetime;$('direction').textContent=dir;$('direction').className='big '+(dir==='BUY'?'green':dir==='SELL'?'red':'yellow');$('score').textContent=bull;$('bull').textContent=bull+'%';$('bear').textContent=bear+'%';$('meter').style.width=conf+'%';
+$('inds').innerHTML=v.map(x=>`<div class="ind"><span class="signal ${x.s==='Bullish'?'green':x.s==='Bearish'?'red':'yellow'}">${x.s}</span><h4>${x.n}</h4><small>Value</small><div class="value">${x.val}</div></div>`).join('');
+let sl=dir==='BUY'?c[i]-at[i]:dir==='SELL'?c[i]+at[i]:null,t1=dir==='BUY'?c[i]+1.5*at[i]:dir==='SELL'?c[i]-1.5*at[i]:null,t2=dir==='BUY'?c[i]+2*at[i]:dir==='SELL'?c[i]-2*at[i]:null;$('levels').innerHTML=dir==='WAIT'?'<div class="level"><small>Status</small><b class="yellow">NO ENTRY</b></div>':`<div class="level"><small>Entry</small><b>${c[i].toFixed(2)}</b></div><div class="level"><small>ATR Stop</small><b>${sl.toFixed(2)}</b></div><div class="level"><small>TP 1</small><b>${t1.toFixed(2)}</b></div><div class="level"><small>TP 2</small><b>${t2.toFixed(2)}</b></div>`;draw(c,e50,e200,bb,sar)}
+function draw(c,e50,e200,bb,sar){let cv=$('chart'),x=cv.getContext('2d'),w=cv.clientWidth,h=cv.clientHeight,d=devicePixelRatio||1;cv.width=w*d;cv.height=h*d;x.scale(d,d);let n=Math.min(160,c.length),st=c.length-n,all=c.slice(st).concat(e50.slice(st),e200.slice(st),bb.up.slice(st),bb.lo.slice(st),sar.slice(st)),mn=Math.min(...all),mx=Math.max(...all),r=mx-mn||1;function line(a,s,wd){x.strokeStyle=s;x.lineWidth=wd;x.beginPath();a.forEach((v,j)=>{let X=8+j*(w-16)/(n-1),Y=h-10-(v-mn)/r*(h-25);j?x.lineTo(X,Y):x.moveTo(X,Y)});x.stroke()}line(c.slice(st),'#35dcff',2);line(e50.slice(st),'#ffd166',1.5);line(e200.slice(st),'#ff5575',1.5);line(bb.up.slice(st),'#8ca6bd',1);line(bb.lo.slice(st),'#8ca6bd',1);x.fillStyle='#ffd166';sar.slice(st).forEach((v,j)=>{if(j%4)return;let X=8+j*(w-16)/(n-1),Y=h-10-(v-mn)/r*(h-25);x.beginPath();x.arc(X,Y,2,0,7);x.fill()});x.fillStyle='#8ca6bd';x.font='12px system-ui';x.fillText('Cyan Price • Yellow EMA50 • Red EMA200 • Grey Bollinger • Dots PSAR',8,16)}
+$('load').onclick=loadReal;$('demo').onclick=demo;$('analyze').onclick=analyze;demo();
+</script>
+<script>
+/* V8 real multi-timeframe layer */
+let mtf={};
+const V8_TF=[["15min","15M",.10],["1h","1H",.20],["4h","4H",.30],["1day","1D",.40]];
+async function v7Load(){
+ const key=document.getElementById("key").value.trim();
+ if(!key){alert("Enter your Twelve Data API key.");return}
+ document.getElementById("status").textContent="Loading 15M + 1H + 4H + 1D XAU/USD...";
+ mtf={};
+ try{
+  for(const [tf,name] of V8_TF){
+   const u=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&outputsize=${document.getElementById("size").value}&order=asc&apikey=${encodeURIComponent(key)}`;
+   const j=await (await fetch(u)).json();
+   if(j.status==="error"||!j.values) throw Error(name+": "+(j.message||"no data"));
+   mtf[tf]=j.values.map(v=>({datetime:v.datetime,open:+v.open,high:+v.high,low:+v.low,close:+v.close}))
+    .filter(v=>[v.open,v.high,v.low,v.close].every(Number.isFinite));
+  }
+  document.getElementById("status").textContent="Real XAU/USD loaded across all four timeframes.";
+  v7Render();
+ }catch(e){document.getElementById("status").textContent="Load error: "+e.message}
+}
+function v7Calc(rs){
+ const c=rs.map(x=>x.close),e50=ema(c,50),e200=ema(c,200),rr=rsi(c),bb=boll(c),sar=psar(rs),
+ e13=ema(c,13),bp=rs.map((x,i)=>x.high-e13[i]),br=rs.map((x,i)=>x.low-e13[i]),
+ av=ao(rs),mc=macd(c),at=atr(rs),i=c.length-1;
+ let w=0,b=0;
+ const vote=(bull,weight)=>{w+=weight;if(bull)b+=weight};
+ vote(rr[i]>50&&rr[i]<70||rr[i]<30,1);
+ const bpct=(c[i]-bb.lo[i])/(bb.up[i]-bb.lo[i]||1);
+ vote(bpct<.2||(bpct>=.2&&bpct<=.8&&c[i]>bb.mid[i]),1);
+ vote(c[i]>sar[i],1);vote(bp[i]>0,.8);vote(br[i]<0,.8);vote(av[i]>0,1);vote(e50[i]>e200[i],1.3);vote(mc.m[i]>mc.sig[i],1.2);
+ const bull=100*b/w;
+ return {bull,bear:100-bull,price:c[i],time:rs[i].datetime,at:at[i],c,e50,e200,bb,sar};
+}
+function v7Render(){
+ const qs=V8_TF.map(([tf,n,w])=>[tf,n,w,v7Calc(mtf[tf])]);
+ let bull=qs.reduce((a,x)=>a+x[2]*x[3].bull,0), bear=100-bull;
+ const dirs=qs.map(x=>x[3].bull>=60?"BUY":x[3].bull<=40?"SELL":"WAIT");
+ const directional=dirs.filter(x=>x!=="WAIT");
+ let final=bull>=65?"BUY":bull<=35?"SELL":"WAIT";
+ const agree=directional.length>=3 && directional.every(x=>x===directional[0]);
+ if(!agree) final="WAIT";
+ const q=qs[0][3],conf=Math.max(bull,bear);
+ document.getElementById("price").textContent=q.price.toFixed(2);
+ document.getElementById("time").textContent=q.time;
+ document.getElementById("direction").textContent=final;
+ document.getElementById("direction").className="big "+(final==="BUY"?"green":final==="SELL"?"red":"yellow");
+ document.getElementById("score").textContent=Math.round(bull);
+ document.getElementById("bull").textContent=Math.round(bull)+"%";
+ document.getElementById("bear").textContent=Math.round(bear)+"%";
+ document.getElementById("meter").style.width=conf+"%";
+ let box=document.getElementById("status");
+ box.textContent=(agree?"Higher-timeframe confirmation: "+final+". ":"Timeframes disagree: WAIT. ")+"15M/1H/4H/1D analyzed.";
+ let t=document.getElementById("inds");
+ if(t) t.innerHTML=qs.map(x=>`<div class="ind"><h4>${x[1]} — ${dirs[qs.indexOf(x)]}</h4><small>Weighted bullish probability</small><div class="value">${x[3].bull.toFixed(0)}%</div></div>`).join("");
+ const lv=document.getElementById("levels"),a=q.at;
+ if(lv) lv.innerHTML=final==="WAIT"?'<div class="level"><small>STATUS</small><b class="yellow">NO ENTRY</b></div>':
+ `<div class="level"><small>ENTRY</small><b>${q.price.toFixed(2)}</b></div>
+ <div class="level"><small>ATR STOP</small><b>${(final==="BUY"?q.price-a:q.price+a).toFixed(2)}</b></div>
+ <div class="level"><small>TP 1</small><b>${(final==="BUY"?q.price+1.5*a:q.price-1.5*a).toFixed(2)}</b></div>
+ <div class="level"><small>TP 2</small><b>${(final==="BUY"?q.price+2*a:q.price-2*a).toFixed(2)}</b></div>`;
+}
+document.getElementById("load").onclick=v7Load;
+</script>
+
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#040912">
+<script>
+(function(){
+const K="goldpulse_v8_api_key", key=document.getElementById("key"), state=document.getElementById("v8state");
+function sync(){let k=localStorage.getItem(K)||"";if(key)key.value=k; if(state)state.textContent=k?"✓ API key saved on this device":"No API key saved";}
+sync();
+key&&key.addEventListener("blur",()=>{if(key.value.trim())localStorage.setItem(K,key.value.trim());sync()});
+document.getElementById("v8edit")?.addEventListener("click",()=>{key.focus();key.type="text";setTimeout(()=>key.type="password",3000)});
+document.getElementById("v8clear")?.addEventListener("click",()=>{if(confirm("Clear the saved API key?")){localStorage.removeItem(K);sync()}});
+let promptEvent=null, b=document.getElementById("v8install");
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();promptEvent=e;if(b)b.style.display="inline-block"});
+b?.addEventListener("click",async()=>{if(promptEvent){promptEvent.prompt();await promptEvent.userChoice;promptEvent=null;b.style.display="none"}});
+if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")) navigator.serviceWorker.register("./sw.js").catch(()=>{});
+})();
+</script>
+</body></html>
