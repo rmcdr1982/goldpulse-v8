@@ -1,0 +1,16 @@
+{
+  "name": "GoldPulse AI V10",
+  "short_name": "GoldPulse V10",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#06101c",
+  "theme_color": "#06101c",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
