@@ -1,0 +1,17 @@
+{
+  "name": "GoldPulse AI V11.3",
+  "short_name": "GoldPulse AI",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "description": "XAU/USD multi-timeframe technical analysis PWA.",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

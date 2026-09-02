@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111f">
+<title>GoldPulse AI V11.3</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{--bg:#07111f;--panel:#0d1a2b;--panel2:#101f33;--text:#eaf4ff;--muted:#91a5bc;--line:#20334b;--accent:#42d9ff;--green:#45e08a;--red:#ff6b7a;--yellow:#ffd166}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#06101c,#091a2b 55%,#06101c);color:var(--text);font:14px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}header{position:sticky;top:0;z-index:5;background:#07111fe8;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:14px}h1{margin:0;font-size:22px}h2{font-size:17px;margin:0 0 10px}h3{font-size:14px;margin:12px 0 7px;color:var(--accent)}.sub{color:var(--muted);font-size:12px}.wrap{max-width:1200px;margin:auto;padding:12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}.card{background:linear-gradient(145deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:16px;padding:13px;box-shadow:0 8px 30px #0004}.wide{grid-column:1/-1}.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}input,select,button{border:1px solid var(--line);border-radius:10px;padding:10px;background:#091625;color:var(--text)}input{min-width:250px;flex:1}button{cursor:pointer}button.primary{border-color:#1e9fc0;background:#0b3040}button:hover{filter:brightness(1.15)}.status{padding:9px;border-radius:10px;background:#091625;color:var(--muted);margin-top:9px}.status.ok{color:var(--green)}.status.err{color:var(--red)}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.kpi{background:#081524;border:1px solid var(--line);padding:10px;border-radius:10px}.kpi b{display:block;font-size:19px}.pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#13263b;margin:2px}.buy{color:var(--green)}.sell{color:var(--red)}.neutral{color:var(--yellow)}table{width:100%;border-collapse:collapse;font-size:12px}td,th{border-bottom:1px solid var(--line);padding:7px;text-align:left}canvas{width:100%;height:310px;background:#07111d;border-radius:12px}.bar{height:10px;background:#081421;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent)}.small{font-size:11px;color:var(--muted)}.check{display:grid;grid-template-columns:1fr 1fr;gap:6px}.good{color:var(--green)}.bad{color:var(--red)}@media(max-width:650px){.kpis{grid-template-columns:1fr 1fr}canvas{height:250px}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>🟡 GoldPulse AI V11.3</h1><div class="sub">XAU/USD multi-timeframe decision engine • 15M • 1H • 4H • 1D</div></div></header>
+<main class="wrap">
+<section class="card">
+<h2>Connection & Controls</h2>
+<div class="controls">
+<input id="key" type="password" placeholder="Twelve Data API key">
+<button class="primary" id="test">Test API</button><button id="load">Load All</button><button id="demo">Demo</button><button id="refresh">Auto Refresh</button><button id="install">Install</button><button id="clear">Clear Key</button>
+</div>
+<div class="controls">
+<label>Bars <input id="bars" type="number" value="500" min="205" max="5000" style="width:110px;min-width:110px"></label>
+<label>Refresh <select id="mins"><option value="1">1 min</option><option value="5" selected>5 min</option><option value="15">15 min</option><option value="30">30 min</option></select></label>
+</div>
+<div id="status" class="status">Ready. API key is saved only in this browser's local storage.</div>
+</section>
+
+<section class="grid" id="overview"></section>
+
+<section class="card wide">
+<h2>V11.3 Decision Engine</h2>
+<div id="engine"></div>
+</section>
+
+<section class="card wide">
+<h2>Multi-Timeframe Dashboard</h2>
+<div id="mtf"></div>
+</section>
+
+<section class="card wide">
+<h2>Market Chart</h2>
+<canvas id="chart" width="1100" height="310"></canvas>
+<div class="small">Close, EMA50, EMA200, Bollinger mid/upper/lower, support and resistance. Chart is for analysis; it is not a broker execution chart.</div>
+</section>
+
+<section class="grid">
+<div class="card"><h2>Entry / Risk Plan</h2><div id="risk"></div></div>
+<div class="card"><h2>Regime & Filters</h2><div id="regime"></div></div>
+</section>
+
+<section class="card wide">
+<h2>Walk-Forward / Out-of-Sample Backtest</h2>
+<div class="controls">
+<label>Training bars <input id="train" type="number" value="300" min="100" max="2000" style="width:120px;min-width:120px"></label>
+<label>Hold bars <input id="hold" type="number" value="8" min="1" max="50" style="width:100px;min-width:100px"></label>
+<label>Threshold <input id="threshold" type="number" value="70" min="55" max="90" style="width:100px;min-width:100px"></label>
+<button class="primary" id="backtest">Run Backtest</button>
+</div>
+<div id="bt"></div>
+</section>
+
+<section class="card wide">
+<h2>Signal History</h2>
+<div id="history"></div>
+</section>
+
+<section class="card wide">
+<h2>Safety / Accuracy Notes</h2>
+<div class="small">
+V11.3 produces a technical score, not a guaranteed probability or financial advice. Backtests are historical simulations and can differ materially from live results. Slippage, spread and execution are modeled approximately. Never put your API key in a public GitHub repository. WebSocket streaming requires a Twelve Data plan that supports it.
+</div>
+</section>
+</main>
+
+<script>
+const TF=["15min","1h","4h","1day"], LABEL={"15min":"15M","1h":"1H","4h":"4H","1day":"1D"};
+let data={}, active=null, timer=null, deferredInstall=null, history=[];
+const $=id=>document.getElementById(id);
+$("key").value=localStorage.getItem("goldpulse_v11_3_api_key")||"";
+$("key").addEventListener("change",()=>localStorage.setItem("goldpulse_v11_3_api_key",$("key").value.trim()));
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e;$("install").disabled=false});
+$("install").onclick=async()=>{if(deferredInstall){deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null}else alert("For a PWA install, open this app from an HTTPS address such as GitHub Pages, then use your browser's Install/Add to Home screen option.")};
+$("clear").onclick=()=>{localStorage.removeItem("goldpulse_v11_3_api_key");$("key").value="";setStatus("API key cleared.")};
+
+function setStatus(s,ok=false,err=false){$("status").textContent=s;$("status").className="status "+(ok?"ok":err?"err":"")}
+function num(x){return Number.isFinite(x)?x:0}
+function mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0}
+function ema(a,p){let out=[],k=2/(p+1),e=a[0]||0;for(let i=0;i<a.length;i++){e=i? a[i]*k+e*(1-k):a[i];out.push(e)}return out}
+function sma(a,p){return a.map((_,i)=>i+1<p?null:mean(a.slice(i-p+1,i+1)))}
+function sd(a,p){return a.map((_,i)=>i+1<p?null:Math.sqrt(mean(a.slice(i-p+1,i+1).map(x=>(x-mean(a.slice(i-p+1,i+1)))**2))))}
+function rsi(c,p=14){let o=Array(c.length).fill(50),g=0,l=0;for(let i=1;i<c.length;i++){let d=c[i]-c[i-1],G=Math.max(d,0),L=Math.max(-d,0);if(i<=p){g+=G;l+=L;if(i===p){g/=p;l/=p}}else{g=(g*(p-1)+G)/p;l=(l*(p-1)+L)/p}o[i]=l===0?100:100-100/(1+g/l)}return o}
+function macd(c){let a=ema(c,12),b=ema(c,26),m=a.map((x,i)=>x-b[i]),s=ema(m,9);return {m,s,h:m.map((x,i)=>x-s[i])}}
+function atr(r,p=14){let tr=r.map((x,i)=>i?Math.max(x.h-x.l,Math.abs(x.h-r[i-1].c),Math.abs(x.l-r[i-1].c)):x.h-x.l);return ema(tr,p)}
+function boll(c,p=20,k=2){let m=sma(c,p),s=sd(c,p);return {m,u:m.map((x,i)=>x==null?null:x+k*s[i]),l:m.map((x,i)=>x==null?null:x-k*s[i])}}
+function ao(r){let m=r.map(x=>(x.h+x.l)/2),f=sma(m,5),s=sma(m,34);return m.map((_,i)=>f[i]==null||s[i]==null?0:f[i]-s[i])}
+function psar(r,step=.02,max=.2){let bull=true,sar=r[0].l,ep=r[0].h,af=step,out=[sar];for(let i=1;i<r.length;i++){sar=sar+af*(ep-sar);if(bull){sar=Math.min(sar,r[i-1].l,i>1?r[i-2].l:r[i-1].l);if(r[i].l<sar){bull=false;sar=ep;ep=r[i].l;af=step}else if(r[i].h>ep){ep=r[i].h;af=Math.min(max,af+step)}}else{sar=Math.max(sar,r[i-1].h,i>1?r[i-2].h:r[i-1].h);if(r[i].h>sar){bull=true;sar=ep;ep=r[i].h;af=step}else if(r[i].l<ep){ep=r[i].l;af=Math.min(max,af+step)}}out.push(sar)}return out}
+function adx(r,p=14){let tr=[],plus=[],minus=[];for(let i=0;i<r.length;i++){if(!i){tr.push(r[i].h-r[i].l);plus.push(0);minus.push(0);continue}let up=r[i].h-r[i-1].h,dn=r[i-1].l-r[i].l;tr.push(Math.max(r[i].h-r[i].l,Math.abs(r[i].h-r[i-1].c),Math.abs(r[i].l-r[i-1].c)));plus.push(up>dn&&up>0?up:0);minus.push(dn>up&&dn>0?dn:0)}let T=ema(tr,p),P=ema(plus,p),M=ema(minus,p),pi=P.map((x,i)=>100*x/(T[i]||1)),mi=M.map((x,i)=>100*x/(T[i]||1)),dx=pi.map((x,i)=>100*Math.abs(x-mi[i])/Math.max(x+mi[i],1));return {adx:ema(dx,p),pi,mi}}
+function calc(r){
+ const c=r.map(x=>x.c), h=r.map(x=>x.h), l=r.map(x=>x.l), E50=ema(c,50),E200=ema(c,200),R=rsi(c),M=macd(c),B=boll(c),A=atr(r),AO=ao(r),P=psar(r),ADX=adx(r);
+ const bulls=h.map((x,i)=>x-E50[i]), bears=l.map((x,i)=>x-E50[i]);
+ let i=c.length-1, look=Math.min(50,c.length), sup=Math.min(...l.slice(-look)),res=Math.max(...h.slice(-look)), p=c[i];
+ let trend=E50[i]>E200[i]?100:0, mom=R[i]>=70?100:R[i]>=55?75:R[i]<=30?0:R[i]<=45?25:50;
+ if(M.m[i]>M.s[i]) mom=Math.max(mom,70); else mom=Math.min(mom,30);
+ let vol=A[i], width=(B.u[i]-B.l[i])/(B.m[i]||p), regime=ADX.adx[i]>=25?(E50[i]>E200[i]?"TREND UP":"TREND DOWN"):(width>.025?"VOLATILE":"RANGE");
+ let structure=p>E50[i]&&p>sup+(res-sup)*.55?70:p<E50[i]&&p<sup+(res-sup)*.45?30:50;
+ let breakout=p>res*.999?90:p<sup*1.001?10:50;
+ let div=50;if(i>10){let pchg=p-c[i-8], rchg=R[i]-R[i-8];if(pchg<0&&rchg>3)div=90;if(pchg>0&&rchg<-3)div=10}
+ let base=trend*.25+structure*.25+mom*.20+(ADX.adx[i]>=25?75:50)*.15+div*.10+breakout*.05;
+ if(regime==="TREND DOWN")base-=8;if(regime==="TREND UP")base+=4;
+ let score=Math.max(0,Math.min(100,base)),signal=score>=70?"BUY":score<=30?"SELL":"WAIT";
+ let confidence=Math.round(Math.abs(score-50)*2);
+ return {c,h,l,E50,E200,R,M,B,A,AO,P,ADX,bulls,bears,sup,res,regime,score,signal,confidence,width};
+}
+function parseTD(j){if(!j.values)throw Error(j.message||"Twelve Data returned no values.");return j.values.slice().reverse().map(x=>({t:x.datetime,o:+x.open,h:+x.high,l:+x.low,c:+x.close,v:+(x.volume||0)})).filter(x=>Number.isFinite(x.c))}
+async function fetchTF(tf){
+ const key=$("key").value.trim(); if(!key)throw Error("Enter your Twelve Data API key first.");
+ localStorage.setItem("goldpulse_v11_3_api_key",key);
+ const n=Math.min(5000,Math.max(205,+$("bars").value||500));
+ const url=`https://api.twelvedata.com/time_series?symbol=XAU%2FUSD&interval=${encodeURIComponent(tf)}&outputsize=${n}&apikey=${encodeURIComponent(key)}`;
+ const r=await fetch(url);const j=await r.json();return parseTD(j)
+}
+async function loadAll(){
+ try{
+  setStatus("Loading XAU/USD from Twelve Data…");
+  for(const tf of TF){setStatus("Loading "+LABEL[tf]+"…");data[tf]=await fetchTF(tf);renderTF(tf)}
+  active="1h";renderAll();saveSignal();setStatus("All timeframes loaded.",true);
+ }catch(e){setStatus(e.message,true?false:true,true)}
+}
+function demoTF(n=500,step=.002){
+ let p=3300,r=[];for(let i=0;i<n;i++){let drift=Math.sin(i/37)*.0007+(Math.random()-.48)*step;p*=1+drift;let o=p*(1+(Math.random()-.5)*.001),h=Math.max(o,p)*(1+Math.random()*.001),l=Math.min(o,p)*(1-Math.random()*.001);r.push({t:new Date(Date.now()-(n-i)*3600000).toISOString(),o,h,l,c:p,v:100})}return r
+}
+function demo(){data={};TF.forEach((tf,i)=>data[tf]=demoTF(500,0.0025/(i+1)));active="1h";renderAll();saveSignal();setStatus("Demo data loaded — not live market data.",false)}
+function renderTF(tf){
+ if(!data[tf])return;let x=calc(data[tf]);let cls=x.signal==="BUY"?"buy":x.signal==="SELL"?"sell":"neutral";
+ $("mtf").insertAdjacentHTML("beforeend",`<div class="card"><b>${LABEL[tf]}</b> <span class="${cls}">${x.signal}</span> <span class="pill">Score ${x.score.toFixed(0)}</span><span class="pill">${x.regime}</span><div class="bar"><i style="width:${x.score}%"></i></div><div class="small">Price ${x.c.at(-1).toFixed(2)} • RSI ${x.R.at(-1).toFixed(1)} • ADX ${x.ADX.adx.at(-1).toFixed(1)} • ATR ${x.A.at(-1).toFixed(2)}</div></div>`)
+}
+function renderAll(){
+ $("mtf").innerHTML="";TF.forEach(renderTF);
+ let xs=TF.map(t=>data[t]?calc(data[t]):null).filter(Boolean), buy=xs.filter(x=>x.score>=70).length,sell=xs.filter(x=>x.score<=30).length,avg=mean(xs.map(x=>x.score));
+ let final=avg>=70?"BUY":avg<=30?"SELL":"WAIT", fc=Math.round(Math.abs(avg-50)*2);
+ $("overview").innerHTML=`<div class="card"><h2>Consensus</h2><div class="${final==="BUY"?"buy":final==="SELL"?"sell":"neutral"}" style="font-size:30px;font-weight:800">${final}</div><div>MTF score <b>${avg.toFixed(1)}</b> • confidence index <b>${fc}%</b></div></div><div class="card"><h2>Confirmation</h2><div>${buy} BUY / ${sell} SELL / ${xs.length-buy-sell} WAIT</div><div class="small">Confirmation is a technical score, not a statistical probability.</div></div><div class="card"><h2>Latest XAU/USD</h2><div style="font-size:25px">${data["15min"]?.at(-1)?.c?.toFixed(2)||"—"}</div><div class="small">15M reference price</div></div><div class="card"><h2>Engine</h2><div>Trend 25% • Structure 25% • Momentum 20% • Volatility 15% • Divergence 10% • Breakout 5%</div></div>`;
+ let x=data["1h"]?calc(data["1h"]):calc(data["15min"]||Object.values(data)[0]);active=data["1h"]?"1h":Object.keys(data)[0];draw(x);renderRisk(x);renderRegime(x);renderEngine(x);
+}
+function renderEngine(x){
+ $("engine").innerHTML=`<div class="kpis"><div class="kpi">Signal<b class="${x.signal==="BUY"?"buy":x.signal==="SELL"?"sell":"neutral"}">${x.signal}</b></div><div class="kpi">Score<b>${x.score.toFixed(0)}/100</b></div><div class="kpi">Confidence index<b>${x.confidence}%</b></div><div class="kpi">Regime<b>${x.regime}</b></div></div>
+<h3>Indicator confirmation</h3><div class="check">
+<div>RSI: <b>${x.R.at(-1).toFixed(1)}</b></div><div>MACD hist: <b>${x.M.h.at(-1).toFixed(3)}</b></div>
+<div>EMA50: <b>${x.E50.at(-1).toFixed(2)}</b></div><div>EMA200: <b>${x.E200.at(-1).toFixed(2)}</b></div>
+<div>Bollinger: <b>${x.B.l.at(-1)?.toFixed(2)} – ${x.B.u.at(-1)?.toFixed(2)}</b></div><div>PSAR: <b>${x.P.at(-1).toFixed(2)}</b></div>
+<div>Awesome Osc.: <b>${x.AO.at(-1).toFixed(3)}</b></div><div>ATR: <b>${x.A.at(-1).toFixed(2)}</b></div>
+<div>Bulls Power: <b>${x.bulls.at(-1).toFixed(2)}</b></div><div>Bears Power: <b>${x.bears.at(-1).toFixed(2)}</b></div>
+<div>ADX: <b>${x.ADX.adx.at(-1).toFixed(1)}</b></div><div>+DI / -DI: <b>${x.ADX.pi.at(-1).toFixed(1)} / ${x.ADX.mi.at(-1).toFixed(1)}</b></div>
+</div>`
+}
+function renderRisk(x){
+ let p=x.c.at(-1),a=x.A.at(-1),buySL=Math.min(p-1.5*a,x.sup),sellSL=Math.max(p+1.5*a,x.res),buyTP=p+2*(p-buySL),sellTP=p-2*(sellSL-p);
+ $("risk").innerHTML=`<p>Reference price: <b>${p.toFixed(2)}</b></p><p>BUY plan: Entry ${p.toFixed(2)} • SL <b>${buySL.toFixed(2)}</b> • TP1 <b>${(p+(p-buySL)).toFixed(2)}</b> • TP2 <b>${buyTP.toFixed(2)}</b></p><p>SELL plan: Entry ${p.toFixed(2)} • SL <b>${sellSL.toFixed(2)}</b> • TP1 <b>${(p-(sellSL-p)).toFixed(2)}</b> • TP2 <b>${sellTP.toFixed(2)}</b></p><div class="small">Levels use ATR + recent structure; broker spread/slippage can change execution.</div>`
+}
+function renderRegime(x){
+ let div=(x.c.at(-1)-x.c.at(-9)),rdiv=x.R.at(-1)-x.R.at(-9);
+ $("regime").innerHTML=`<p><b>${x.regime}</b></p><p>ADX: ${x.ADX.adx.at(-1).toFixed(1)} • ATR: ${x.A.at(-1).toFixed(2)} • BB width: ${(x.width*100).toFixed(2)}%</p><p>Recent RSI divergence check: ${div<0&&rdiv>3?"Bullish":div>0&&rdiv<-3?"Bearish":"None detected"}</p><p>Breakout/retest context: price ${x.c.at(-1)>x.res?"above resistance":x.c.at(-1)<x.sup?"below support":"inside recent range"}.</p>`
+}
+function draw(x){
+ let c=$("chart"),ctx=c.getContext("2d"),w=c.width=c.clientWidth*devicePixelRatio,h=c.height=310*devicePixelRatio;ctx.clearRect(0,0,w,h);let n=Math.min(180,x.c.length),s=x.c.length-n,all=x.c.slice(s), lines=[all,x.E50.slice(s),x.E200.slice(s),x.B.u.slice(s),x.B.l.slice(s)];let vals=lines.flat().filter(Number.isFinite),mn=Math.min(...vals),mx=Math.max(...vals),X=i=>i/(n-1)*w,Y=v=>h-(v-mn)/(mx-mn||1)*h*.88-h*.06;ctx.lineWidth=1.5*devicePixelRatio;["#42d9ff","#45e08a","#ffd166","#91a5bc","#91a5bc"].forEach((col,j)=>{ctx.strokeStyle=col;ctx.beginPath();all.forEach((v,i)=>{let z=lines[j][i];if(!Number.isFinite(z))return;i?ctx.lineTo(X(i),Y(z)):ctx.moveTo(X(i),Y(z))});ctx.stroke()});ctx.strokeStyle="#ff6b7a";ctx.beginPath();ctx.moveTo(0,Y(x.res));ctx.lineTo(w,Y(x.res));ctx.stroke();ctx.strokeStyle="#45e08a";ctx.beginPath();ctx.moveTo(0,Y(x.sup));ctx.lineTo(w,Y(x.sup));ctx.stroke()
+}
+function saveSignal(){
+ if(!Object.keys(data).length)return;let xs=TF.map(t=>data[t]?calc(data[t]):null).filter(Boolean),avg=mean(xs.map(x=>x.score));history.unshift({time:new Date().toLocaleString(),score:avg,signal:avg>=70?"BUY":avg<=30?"SELL":"WAIT",price:data["15min"]?.at(-1)?.c||0});history=history.slice(0,30);renderHistory()
+}
+function renderHistory(){if(!history.length){$("history").innerHTML='<div class="small">No signals yet.</div>';return}$("history").innerHTML='<table><tr><th>Time</th><th>Price</th><th>Score</th><th>Signal</th></tr>'+history.map(x=>`<tr><td>${x.time}</td><td>${x.price.toFixed(2)}</td><td>${x.score.toFixed(1)}</td><td class="${x.signal==="BUY"?"buy":x.signal==="SELL"?"sell":"neutral"}">${x.signal}</td></tr>`).join("")+'</table>'}
+function runBacktest(){
+ let r=data["1h"]||data["15min"];if(!r||r.length<220){$("bt").innerHTML='<div class="small">Load live data or Demo first.</div>';return}
+ let train=+$("train").value||300,hold=+$("hold").value||8,thr=+$("threshold").value||70,slip=.00025,trades=[],equity=0,maxEq=0,maxDD=0;
+ for(let i=Math.max(205,train);i<r.length-hold;i+=hold){
+  let x=calc(r.slice(0,i+1)),entry=r[i].c,next=r[i+hold].c,dir=x.score>=thr?1:x.score<=(100-thr)?-1:0;if(!dir)continue;
+  let ret=dir*((next-entry)/entry)-slip, R=ret/.003;equity+=R;maxEq=Math.max(maxEq,equity);maxDD=Math.max(maxDD,maxEq-equity);trades.push({i,dir,entry,next,R});
+ }
+ let wins=trades.filter(t=>t.R>0),loss=trades.filter(t=>t.R<=0),wr=trades.length?wins.length/trades.length*100:0,gain=wins.reduce((a,b)=>a+b.R,0),lossAbs=Math.abs(loss.reduce((a,b)=>a+b.R,0)),pf=lossAbs?gain/lossAbs:Infinity,exp=trades.length?equity/trades.length:0;
+ $("bt").innerHTML=`<div class="kpis"><div class="kpi">Trades<b>${trades.length}</b></div><div class="kpi">Win rate<b>${wr.toFixed(1)}%</b></div><div class="kpi">Net R<b>${equity.toFixed(2)}</b></div><div class="kpi">Profit factor<b>${Number.isFinite(pf)?pf.toFixed(2):"∞"}</b></div></div><p>Max drawdown: <b>${maxDD.toFixed(2)} R</b> • Expectancy: <b>${exp.toFixed(3)} R/trade</b> • Train window: ${train} bars • Hold: ${hold} bars • Slippage model: ${(slip*100).toFixed(3)}%</p>
+ <table><tr><th>#</th><th>Side</th><th>Entry</th><th>Exit</th><th>R</th></tr>${trades.slice(-40).map((t,k)=>`<tr><td>${k+1}</td><td class="${t.dir>0?"buy":"sell"}">${t.dir>0?"BUY":"SELL"}</td><td>${t.entry.toFixed(2)}</td><td>${t.next.toFixed(2)}</td><td class="${t.R>0?"good":"bad"}">${t.R.toFixed(2)}</td></tr>`).join("")}</table>
+ <div class="small">This is a walk-forward-style, no-look-ahead simulation with a training/warm-up window. It is not a machine-learning optimizer and does not guarantee future performance.</div>`
+}
+$("test").onclick=async()=>{try{setStatus("Testing API…");let r=await fetchTF("1day");setStatus(`API OK — received ${r.length} daily candles for XAU/USD.`,true)}catch(e){setStatus(e.message,false,true)}};
+$("load").onclick=loadAll;$("demo").onclick=demo;$("backtest").onclick=runBacktest;
+$("refresh").onclick=()=>{if(timer){clearInterval(timer);timer=null;$("refresh").textContent="Auto Refresh";setStatus("Auto refresh stopped.");}else{let ms=(+$("mins").value||5)*60000;timer=setInterval(loadAll,ms);$("refresh").textContent="Stop Refresh";setStatus("Auto refresh enabled.");}};
+if("serviceWorker" in navigator && location.protocol!=="file:")navigator.serviceWorker.register("sw.js").catch(()=>{});
+$("install").disabled=true;renderHistory();
+</script>
+</body>
+</html>
